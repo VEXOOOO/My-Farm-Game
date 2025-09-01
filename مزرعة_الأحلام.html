@@ -1,0 +1,852 @@
+<html lang="en"><head>
+  <meta charset="UTF-8">
+  
+
+    <link rel="apple-touch-icon" type="image/png" href="https://cpwebassets.codepen.io/assets/favicon/apple-touch-icon-5ae1a0698dcc2402e9712f7d01ed509a57814f994c660df9f7a952f3060705ee.png">
+
+    <meta name="apple-mobile-web-app-title" content="CodePen">
+
+    <link rel="icon" type="image/x-icon" href="https://cpwebassets.codepen.io/assets/favicon/favicon-aec34940fbc1a6e787974dcd360f2c6b63348d4b1f4e06c77743096d55480f33.ico">
+
+    <link rel="mask-icon" type="image/x-icon" href="https://cpwebassets.codepen.io/assets/favicon/logo-pin-b4b4269c16397ad2f0f7a01bcdf513a1994f4c94b8af2f191c09eb0d601762b1.svg" color="#111">
+
+
+
+  
+  
+
+  <title>Untitled</title>
+
+    <link rel="canonical" href="https://codepen.io/peter-parker-the-solid/pen/RNWeOLj">
+  
+  
+  
+  
+
+  <script>
+  window.console = window.console || function(t) {};
+</script>
+
+  
+  
+</head>
+
+<body translate="no">
+  
+
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مزرعة الأحلام - النسخة المتقدمة</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f7f3e9;
+            color: #4a4a4a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            flex-direction: column;
+            padding: 20px;
+            background-image: url('https://i.ibb.co/C07Bf5L/farm-bg.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: row;
+            gap: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .panel {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            width: 380px;
+            border: 3px solid #6c4b2b;
+            text-align: center;
+        }
+
+        .panel h2 {
+            color: #6c4b2b;
+            margin-top: 0;
+            border-bottom: 2px solid #6c4b2b;
+            padding-bottom: 10px;
+        }
+
+        .stats, .inventory {
+            list-style: none;
+            padding: 0;
+            text-align: right;
+        }
+
+        .stats li, .inventory li {
+            margin-bottom: 12px;
+            font-size: 18px;
+            border-bottom: 1px dashed #ccc;
+            padding-bottom: 8px;
+        }
+
+        .stats span, .inventory span {
+            float: left;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .stats li:last-child, .inventory li:last-child {
+            border-bottom: none;
+        }
+
+        .farm-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 65px);
+            grid-template-rows: repeat(5, 65px);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .farm-tile {
+            width: 65px;
+            height: 65px;
+            background-color: #8b5e3c;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 35px;
+            position: relative;
+            border: 3px solid #6a442a;
+            transition: transform 0.1s ease-in-out, background-color 0.3s;
+        }
+
+        .farm-tile:hover {
+            transform: scale(1.08);
+            border-color: #ffc107;
+        }
+
+        .farm-tile.dug {
+            background-color: #5c3e29;
+            border-color: #4a301e;
+        }
+
+        .farm-tile.planted {
+            background-color: #78a25a;
+        }
+
+        .farm-tile.watered {
+            background-color: #4b6a37;
+        }
+
+        .farm-tile.ripe {
+            background-color: #3498db;
+            animation: pulse 1s infinite alternate;
+        }
+
+        @keyframes pulse {
+            from {
+                transform: scale(1);
+            }
+            to {
+                transform: scale(1.05);
+            }
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .controls button, .shop button {
+            flex-grow: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .controls button[data-tool="hoe"] { background-color: #9c6c39; }
+        .controls button[data-tool="seed"] { background-color: #2ecc71; }
+        .controls button[data-tool="water"] { background-color: #3498db; }
+        .controls button[data-tool="harvest"] { background-color: #e67e22; }
+        .controls button[data-tool="weatherFriend"] { background-color: #f39c12; }
+
+        .controls button:disabled, .shop button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .controls button:hover:not(:disabled), .shop button:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        #activeToolDisplay {
+            margin-top: 15px;
+            font-size: 1.2em;
+            color: #4a4a4a;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid #34495e;
+        }
+
+        .plant-progress {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            font-size: 12px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 2px 5px;
+            border-radius: 5px;
+        }
+        
+        .shop-list {
+            list-style: none;
+            padding: 0;
+            text-align: right;
+        }
+        
+        .shop-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px dashed #ccc;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .shop-item:last-child {
+            border-bottom: none;
+        }
+        
+        .shop-item button {
+            background-color: #3498db;
+        }
+        
+        .shop-item .price {
+            font-weight: bold;
+            color: #27ae60;
+            margin-right: 10px;
+        }
+
+        .resource-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px dashed #ccc;
+        }
+        
+        .resource-item:last-child {
+            border-bottom: none;
+        }
+        
+        .resource-item .count {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+
+        .shop-item button[data-type="seed"] {
+            background-color: #2ecc71;
+        }
+        
+        /* Modal for Seed Selection */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 15px;
+            text-align: center;
+            border: 3px solid #6c4b2b;
+        }
+
+        .modal-content h3 {
+            color: #6c4b2b;
+            margin-bottom: 20px;
+        }
+
+        .seed-options button {
+            background-color: #2ecc71;
+            color: white;
+            padding: 12px 24px;
+            margin: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .seed-options button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+
+
+    
+    <div class="game-container">
+        <div class="panel controls-panel">
+            <h2>الأدوات</h2>
+            <div class="controls">
+                <button data-tool="hoe">حفر التربة ⛏️</button>
+                <button data-tool="seed">بذر 🌾</button>
+                <button data-tool="water">ري 💧</button>
+                <button data-tool="harvest">حصاد 🥕</button>
+                <button data-tool="weatherFriend">صديق الجو ☀️</button>
+            </div>
+            <p id="activeToolDisplay">الأداة النشطة: لا شيء</p>
+            <br>
+            <button onclick="downloadGame()" style="background-color: #8e44ad; width: 100%;">تحميل اللعبة 💾</button>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <div class="panel farm-panel">
+            <h2>لوحة الزراعة</h2>
+            <div class="farm-grid" id="farmGrid"><div class="farm-tile" data-index="0"></div><div class="farm-tile" data-index="1"></div><div class="farm-tile" data-index="2"></div><div class="farm-tile" data-index="3"></div><div class="farm-tile" data-index="4"></div><div class="farm-tile" data-index="5"></div><div class="farm-tile" data-index="6"></div><div class="farm-tile" data-index="7"></div><div class="farm-tile" data-index="8"></div><div class="farm-tile" data-index="9"></div><div class="farm-tile" data-index="10"></div><div class="farm-tile" data-index="11"></div><div class="farm-tile" data-index="12"></div><div class="farm-tile" data-index="13"></div><div class="farm-tile" data-index="14"></div><div class="farm-tile" data-index="15"></div><div class="farm-tile" data-index="16"></div><div class="farm-tile" data-index="17"></div><div class="farm-tile" data-index="18"></div><div class="farm-tile" data-index="19"></div><div class="farm-tile" data-index="20"></div><div class="farm-tile" data-index="21"></div><div class="farm-tile" data-index="22"></div><div class="farm-tile" data-index="23"></div><div class="farm-tile" data-index="24"></div></div>
+        </div>
+        <div class="panel">
+            <h2>المخزون</h2>
+            <ul class="inventory" id="inventoryList"><h3>البذور</h3><li>قمح 🌾: 0</li><li>جزر 🥕: 0</li><li>ذرة 🌽: 0</li><h3>المحاصيل</h3></ul>
+            <p>
+                <button id="sellBtn" class="shop" disabled="">بيع المحاصيل</button>
+            </p>
+        </div>
+    </div>
+    
+    <div class="game-container" id="shopContainer">
+        <div class="panel stats-panel">
+            <h2>حالة المزرعة</h2>
+            <ul class="stats">
+                <li>النقود: <span id="money">100</span></li>
+                <li>الخبرة: <span id="xp">0</span></li>
+                <li>المستوى: <span id="level">1</span></li>
+                <li>المحاصيل: <span id="cropsCount">0</span></li>
+            </ul>
+        </div>
+        <div class="panel">
+            <h2>المتجر</h2>
+            <ul class="shop-list" id="shopList"><li class="shop-item">
+                <span>قمح 🌾</span>
+                <span class="price">10 💰</span>
+                <button data-type="seed" data-item="wheat">اشترِ</button>
+            </li><li class="shop-item">
+                <span>جزر 🥕</span>
+                <span class="price">15 💰</span>
+                <button data-type="seed" data-item="carrot" disabled="">مستوى 2 مطلوب</button>
+            </li><li class="shop-item">
+                <span>ذرة 🌽</span>
+                <span class="price">20 💰</span>
+                <button data-type="seed" data-item="corn" disabled="">مستوى 3 مطلوب</button>
+            </li><li class="shop-item">
+                <span>فأس حفر ⛏️</span>
+                <span class="price">100 💰</span>
+                <button data-type="resource" data-item="hoe">اشترِ</button>
+            </li><li class="shop-item">
+                <span>علبة مياه 💧</span>
+                <span class="price">10 💰</span>
+                <button data-type="resource" data-item="water">اشترِ</button>
+            </li><li class="shop-item">
+                <span>صديق الجو ☀️</span>
+                <span class="price">75 💰</span>
+                <button data-type="resource" data-item="weatherFriend">اشترِ</button>
+            </li></ul>
+        </div>
+        <div class="panel">
+            <h2>مخزون الموارد</h2>
+            <ul class="resource-list" id="resourceList"><li class="resource-item">فأس حفر ⛏️: <span class="count">1</span></li><li class="resource-item">علبة مياه 💧: <span class="count">5</span></li><li class="resource-item">صديق الجو ☀️: <span class="count">0</span></li></ul>
+        </div>
+    </div>
+
+    <div id="seedModal" class="modal">
+        <div class="modal-content">
+            <h3>اختر نوع البذرة</h3>
+            <div id="seedOptions" class="seed-options"><button data-seed="wheat">قمح 🌾</button><button data-seed="carrot">جزر 🥕</button><button data-seed="corn">ذرة 🌽</button></div>
+        </div>
+    </div>
+
+
+<script>
+    const gameElements = {
+        farmGrid: document.getElementById('farmGrid'),
+        moneyDisplay: document.getElementById('money'),
+        xpDisplay: document.getElementById('xp'),
+        levelDisplay: document.getElementById('level'),
+        cropsCountDisplay: document.getElementById('cropsCount'),
+        activeToolDisplay: document.getElementById('activeToolDisplay'),
+        inventoryList: document.getElementById('inventoryList'),
+        sellBtn: document.getElementById('sellBtn'),
+        shopList: document.getElementById('shopList'),
+        resourceList: document.getElementById('resourceList'),
+        controls: document.querySelectorAll('.controls button'),
+        shopContainer: document.getElementById('shopContainer'),
+        seedModal: document.getElementById('seedModal'),
+        seedOptions: document.getElementById('seedOptions')
+    };
+
+    let gameData = {
+        money: 100,
+        xp: 0,
+        level: 1,
+        farm: [],
+        activeTool: null,
+        selectedSeedToPlant: null,
+        resources: {
+            hoe: 1,
+            water: 5,
+            weatherFriend: 0
+        },
+        inventory: {
+            seeds: {
+                wheat: 0,
+                carrot: 0,
+                corn: 0
+            },
+            crops: {}
+        }
+    };
+
+    const plantDefinitions = {
+        wheat: { name: 'قمح', emoji: '🌾', seedCost: 10, growTime: 20000, value: 25, xp: 10, requiredLevel: 1 },
+        carrot: { name: 'جزر', emoji: '🥕', seedCost: 15, growTime: 30000, value: 75, xp: 15, requiredLevel: 2 },
+        corn: { name: 'ذرة', emoji: '🌽', seedCost: 20, growTime: 40000, value: 100, xp: 20, requiredLevel: 3 }
+    };
+
+    const toolDefinitions = {
+        hoe: { name: 'حفر', emoji: '⛏️' },
+        seed: { name: 'بذر', emoji: '🌾' },
+        water: { name: 'ري', emoji: '💧' },
+        harvest: { name: 'حصاد', emoji: '🥕' },
+        weatherFriend: { name: 'صديق الجو', emoji: '☀️' }
+    };
+    
+    const consumableResources = {
+        hoe: { name: 'فأس حفر', emoji: '⛏️', cost: 100 },
+        water: { name: 'علبة مياه', emoji: '💧', cost: 10 },
+        weatherFriend: { name: 'صديق الجو', emoji: '☀️', cost: 75, requiredLevel: 1}
+    };
+
+    function initGame() {
+        setupFarmGrid();
+        setupControls();
+        setupShop();
+        setupSeedModal();
+        updateUI();
+        setInterval(updateGrowth, 1000);
+    }
+
+    function setupFarmGrid() {
+        gameElements.farmGrid.innerHTML = '';
+        gameData.farm = Array.from({ length: 25 }, () => ({
+            state: 'empty',
+            plant: null,
+            growthProgress: 0
+        }));
+        gameData.farm.forEach((_, index) => {
+            const tile = document.createElement('div');
+            tile.classList.add('farm-tile');
+            tile.dataset.index = index;
+            tile.addEventListener('click', () => handleTileClick(index));
+            gameElements.farmGrid.appendChild(tile);
+        });
+    }
+
+    function setupControls() {
+        gameElements.controls.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const tool = e.target.dataset.tool;
+                if (tool === 'seed') {
+                    showSeedModal();
+                } else {
+                    gameData.activeTool = tool;
+                    gameData.selectedSeedToPlant = null;
+                    updateControlsUI(tool);
+                }
+            });
+        });
+
+        gameElements.sellBtn.addEventListener('click', () => {
+            let totalValue = 0;
+            for (const crop in gameData.inventory.crops) {
+                const plantInfo = Object.values(plantDefinitions).find(p => p.name === crop);
+                if (plantInfo) {
+                    totalValue += gameData.inventory.crops[crop] * plantInfo.value;
+                }
+            }
+            gameData.money += totalValue;
+            gameData.inventory.crops = {};
+            alert(`لقد بعت محاصيلك بقيمة ${totalValue} 💰!`);
+            updateUI();
+        });
+    }
+
+    function setupShop() {
+        gameElements.shopList.innerHTML = '';
+        
+        // Add seed items to the shop
+        for (const itemKey in plantDefinitions) {
+            const itemInfo = plantDefinitions[itemKey];
+            const li = document.createElement('li');
+            li.classList.add('shop-item');
+            li.innerHTML = `
+                <span>${itemInfo.name} ${itemInfo.emoji}</span>
+                <span class="price">${itemInfo.seedCost} 💰</span>
+                <button data-type="seed" data-item="${itemKey}">اشترِ</button>
+            `;
+            gameElements.shopList.appendChild(li);
+        }
+        
+        // Add resource items to the shop
+        for (const itemKey in consumableResources) {
+            const itemInfo = consumableResources[itemKey];
+            const li = document.createElement('li');
+            li.classList.add('shop-item');
+            li.innerHTML = `
+                <span>${itemInfo.name} ${itemInfo.emoji}</span>
+                <span class="price">${itemInfo.cost} 💰</span>
+                <button data-type="resource" data-item="${itemKey}">اشترِ</button>
+            `;
+            gameElements.shopList.appendChild(li);
+        }
+
+        gameElements.shopList.querySelectorAll('button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const { type, item } = e.target.dataset;
+                const itemInfo = type === 'seed' ? plantDefinitions[item] : consumableResources[item];
+                const cost = itemInfo.seedCost || itemInfo.cost;
+
+                if (gameData.money >= cost) {
+                    gameData.money -= cost;
+                    if (type === 'seed') {
+                        gameData.inventory.seeds[item]++;
+                        alert(`لقد اشتريت بذور ${itemInfo.name}.`);
+                    } else {
+                        gameData.resources[item]++;
+                        alert(`لقد اشتريت ${itemInfo.name}.`);
+                    }
+                    updateUI();
+                } else {
+                    alert('لا تملك نقود كافية لشراء هذا العنصر.');
+                }
+            });
+        });
+        updateShopButtons();
+    }
+    
+    function setupSeedModal() {
+        gameElements.seedOptions.innerHTML = '';
+        for (const seedKey in plantDefinitions) {
+            const seedInfo = plantDefinitions[seedKey];
+            const btn = document.createElement('button');
+            btn.dataset.seed = seedKey;
+            btn.textContent = `${seedInfo.name} ${seedInfo.emoji}`;
+            btn.addEventListener('click', () => {
+                if (gameData.inventory.seeds[seedKey] > 0) {
+                    gameData.activeTool = 'seed';
+                    gameData.selectedSeedToPlant = seedKey;
+                    hideSeedModal();
+                    updateControlsUI('seed');
+                } else {
+                    alert('لا تملك بذور من هذا النوع! قم بشرائها من المتجر أولاً.');
+                }
+            });
+            gameElements.seedOptions.appendChild(btn);
+        }
+    }
+
+    function showSeedModal() {
+        gameElements.seedModal.style.display = 'block';
+    }
+
+    function hideSeedModal() {
+        gameElements.seedModal.style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        if (event.target == gameElements.seedModal) {
+            hideSeedModal();
+        }
+    }
+
+    function handleTileClick(index) {
+        const tile = gameElements.farmGrid.children[index];
+        const farmTile = gameData.farm[index];
+        if (!gameData.activeTool) {
+            alert('يرجى اختيار أداة أولاً.');
+            return;
+        }
+
+        switch (gameData.activeTool) {
+            case 'hoe':
+                if (farmTile.state === 'empty' && gameData.resources.hoe > 0) {
+                    farmTile.state = 'dug';
+                    gameData.resources.hoe--;
+                    tile.classList.add('dug');
+                } else if (gameData.resources.hoe === 0) {
+                    alert('لا تملك فأس حفر! اشترِ واحدة من المتجر.');
+                }
+                break;
+            case 'seed':
+                if (farmTile.state === 'dug' && gameData.selectedSeedToPlant) {
+                    const seedType = gameData.selectedSeedToPlant;
+                    if (gameData.inventory.seeds[seedType] > 0) {
+                        gameData.inventory.seeds[seedType]--;
+                        farmTile.state = 'planted';
+                        farmTile.plant = seedType;
+                        farmTile.growthProgress = 0;
+                        tile.textContent = plantDefinitions[seedType].emoji;
+                        tile.classList.add('planted');
+                        gameData.selectedSeedToPlant = null;
+                        gameData.activeTool = null;
+                    } else {
+                        alert('نفدت هذه البذور! اختر نوعًا آخر أو اشترِ المزيد.');
+                    }
+                } else if (!gameData.selectedSeedToPlant) {
+                    alert('يرجى اختيار نوع البذور أولاً.');
+                } else if (farmTile.state !== 'dug') {
+                    alert('يجب أن تكون التربة محفورة أولاً.');
+                }
+                break;
+            case 'water':
+                if (farmTile.state === 'planted' && gameData.resources.water > 0) {
+                    farmTile.state = 'watered';
+                    gameData.resources.water--;
+                    tile.classList.add('watered');
+                } else if (farmTile.state === 'planted') {
+                    alert('لا تملك مياه كافية! اشترِ علبة مياه من المتجر.');
+                }
+                break;
+            case 'harvest':
+                if (farmTile.state === 'ripe') {
+                    const harvestedPlantInfo = plantDefinitions[farmTile.plant];
+                    if (!gameData.inventory.crops[harvestedPlantInfo.name]) {
+                        gameData.inventory.crops[harvestedPlantInfo.name] = 0;
+                    }
+                    gameData.inventory.crops[harvestedPlantInfo.name]++;
+                    gameData.xp += harvestedPlantInfo.xp;
+                    farmTile.state = 'dug';
+                    farmTile.plant = null;
+                    farmTile.growthProgress = 0;
+                    tile.textContent = '';
+                    tile.classList.remove('ripe', 'watered', 'planted');
+                    const progressInfo = tile.querySelector('.plant-progress');
+                    if (progressInfo) progressInfo.remove();
+                } else if (farmTile.state !== 'ripe' && farmTile.plant) {
+                    alert('المحصول لم ينضج بعد!');
+                }
+                break;
+            case 'weatherFriend':
+                if (farmTile.state === 'watered' && gameData.resources.weatherFriend > 0) {
+                    const plant = plantDefinitions[farmTile.plant];
+                    const timeRemaining = plant.growTime - farmTile.growthProgress;
+                    farmTile.growthProgress += timeRemaining * 0.5;
+                    gameData.resources.weatherFriend--;
+                    alert('لقد قمت بتسريع نمو المحصول!');
+                } else if (farmTile.state === 'watered' && gameData.resources.weatherFriend === 0) {
+                    alert('لا تملك أدوات "صديق الجو"! قم بشرائها من المتجر.');
+                } else {
+                    alert('هذه الأداة تعمل فقط على المحاصيل المروية.');
+                }
+                break;
+        }
+        updateUI();
+    }
+
+    function updateGrowth() {
+        gameData.farm.forEach((tile, index) => {
+            if (tile.state === 'watered') {
+                tile.growthProgress += 1000;
+                const plant = plantDefinitions[tile.plant];
+                const farmTileElement = gameElements.farmGrid.children[index];
+                
+                if (tile.growthProgress >= plant.growTime) {
+                    tile.state = 'ripe';
+                    farmTileElement.textContent = plant.emoji;
+                    farmTileElement.classList.add('ripe');
+                    farmTileElement.classList.remove('watered');
+                    const progressInfo = farmTileElement.querySelector('.plant-progress');
+                    if (progressInfo) progressInfo.remove();
+                } else {
+                    const progress = Math.floor((tile.growthProgress / plant.growTime) * 100);
+                    let progressInfo = farmTileElement.querySelector('.plant-progress');
+                    if (!progressInfo) {
+                        progressInfo = document.createElement('span');
+                        progressInfo.classList.add('plant-progress');
+                        farmTileElement.appendChild(progressInfo);
+                    }
+                    progressInfo.textContent = `${progress}%`;
+                }
+            }
+        });
+    }
+
+    function updateUI() {
+        updateStatsUI();
+        updateInventoryUI();
+        updateResourceUI();
+        updateShopButtons();
+        checkLevelUp();
+    }
+
+    function updateStatsUI() {
+        gameElements.moneyDisplay.textContent = gameData.money;
+        gameElements.xpDisplay.textContent = gameData.xp;
+        gameElements.levelDisplay.textContent = gameData.level;
+        let totalCrops = Object.values(gameData.inventory.crops).reduce((sum, count) => sum + count, 0);
+        gameElements.cropsCountDisplay.textContent = totalCrops;
+    }
+
+    function updateInventoryUI() {
+        gameElements.inventoryList.innerHTML = '';
+
+        // Display seeds
+        const seedHeader = document.createElement('h3');
+        seedHeader.textContent = 'البذور';
+        gameElements.inventoryList.appendChild(seedHeader);
+        for (const seed in gameData.inventory.seeds) {
+            const seedInfo = plantDefinitions[seed];
+            const li = document.createElement('li');
+            li.textContent = `${seedInfo.name} ${seedInfo.emoji}: ${gameData.inventory.seeds[seed]}`;
+            gameElements.inventoryList.appendChild(li);
+        }
+
+        // Display crops
+        const cropHeader = document.createElement('h3');
+        cropHeader.textContent = 'المحاصيل';
+        gameElements.inventoryList.appendChild(cropHeader);
+        let hasCrops = false;
+        for (const crop in gameData.inventory.crops) {
+            if (gameData.inventory.crops[crop] > 0) {
+                const li = document.createElement('li');
+                li.textContent = `${crop}: ${gameData.inventory.crops[crop]}`;
+                gameElements.inventoryList.appendChild(li);
+                hasCrops = true;
+            }
+        }
+        gameElements.sellBtn.disabled = !hasCrops;
+    }
+
+    function updateResourceUI() {
+        gameElements.resourceList.innerHTML = '';
+        for (const resource in gameData.resources) {
+            const li = document.createElement('li');
+            li.classList.add('resource-item');
+            const resourceInfo = consumableResources[resource];
+            li.innerHTML = `${resourceInfo.name} ${resourceInfo.emoji}: <span class="count">${gameData.resources[resource]}</span>`;
+            gameElements.resourceList.appendChild(li);
+        }
+    }
+
+    function updateControlsUI(activeTool) {
+        gameElements.controls.forEach(btn => {
+            btn.style.backgroundColor = '';
+            if (btn.dataset.tool === activeTool) {
+                btn.style.backgroundColor = '#2c3e50';
+            }
+        });
+        
+        let toolName = 'لا شيء';
+        let toolEmoji = '';
+        if (activeTool) {
+            toolName = toolDefinitions[activeTool].name;
+            toolEmoji = toolDefinitions[activeTool].emoji;
+            if (activeTool === 'seed' && gameData.selectedSeedToPlant) {
+                const plantName = plantDefinitions[gameData.selectedSeedToPlant].name;
+                toolName += ` (${plantName})`;
+            }
+        }
+        gameElements.activeToolDisplay.textContent = `الأداة النشطة: ${toolName} ${toolEmoji}`;
+    }
+
+    function updateShopButtons() {
+        gameElements.shopList.querySelectorAll('button').forEach(btn => {
+            const { type, item } = btn.dataset;
+            let cost, requiredLevel = 1;
+            
+            if (type === 'seed') {
+                const plantInfo = plantDefinitions[item];
+                cost = plantInfo.seedCost;
+                requiredLevel = plantInfo.requiredLevel;
+            } else {
+                const resourceInfo = consumableResources[item];
+                cost = resourceInfo.cost;
+                requiredLevel = resourceInfo.requiredLevel || 1;
+            }
+            
+            btn.disabled = (gameData.money < cost || gameData.level < requiredLevel);
+            if (gameData.level < requiredLevel) {
+                btn.textContent = `مستوى ${requiredLevel} مطلوب`;
+            } else {
+                btn.textContent = 'اشترِ';
+            }
+        });
+    }
+
+    function checkLevelUp() {
+        const xpRequiredForNextLevel = gameData.level * 100;
+        if (gameData.xp >= xpRequiredForNextLevel) {
+            gameData.level++;
+            gameData.xp = 0;
+            alert(`تهانينا! لقد وصلت إلى المستوى ${gameData.level}!`);
+            updateUI();
+        }
+    }
+    
+    function downloadGame() {
+        const htmlContent = document.documentElement.outerHTML;
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'مزرعة_الأحلام.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+    }
+
+    initGame();
+</script>
+
+
+
+  
+  
+  
+
+
+
+</body></html>
